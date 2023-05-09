@@ -1,5 +1,5 @@
 This is a minimalistic script that helps you manage your IPv4 address space.
-The script does not require any additional libs except the standard ones (for Python 3.11+).
+The script does not require any additional libs except the standard ones (for Python 3.6+).
 
 Usage:
 
