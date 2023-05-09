@@ -33,17 +33,15 @@ def ipv4_prefix_to_subnet_bitmap(prefix: str) -> str:
     plen = int(plen)
     if plen < 0 or plen > 32:
         return ''
-    # mask = '0' if not plen else '1' * plen
-    # mask = f'{mask:032}'
-    # mask = '.'.join(str(int(mask[x * 8:(x * 8) + 8], 2)) for x in range(4))
     mask = plen_to_ipv4_mask(plen)
     return ipv4_address_to_subnet_bitmap(address, mask)
 
-def bitmap_to_ipv4_prefix(bitmap: str) -> tuple[str, int]:
+def bitmap_to_ipv4_prefix(bitmap: str) -> tuple:
     if not re.match(REG_IPV4_BITMASK, bitmap):
         return '', -1
     plen = len(bitmap)
-    bitmap = f'{bitmap:032}'
+    # bitmap = f'{bitmap:032}'
+    bitmap = '{num:0<32}'.format(num=bitmap)
     address = '.'.join(str(int(bitmap[x * 8:(x * 8) + 8], 2)) for x in range(4))
     return address, plen
 
@@ -51,7 +49,8 @@ def plen_to_ipv4_mask(plen: int) -> str:
     if plen < 0 or plen > 32:
         return ''
     mask = '0' if not plen else '1' * plen
-    mask = f'{mask:032}'
+    # mask = f'{mask:032}'
+    mask = '{num:0<32}'.format(num=mask)
     return '.'.join(str(int(mask[x * 8:(x * 8) + 8], 2)) for x in range(4))
 
 
@@ -62,7 +61,7 @@ class TrieNode:
         self.key = key
         self.left: Optional[TrieNode] = None
         self.right: Optional[TrieNode] = None
-        self.ptypes: list[str] = []
+        self.ptypes: list = []
 
 class Trie:
     def __init__(self) -> None:

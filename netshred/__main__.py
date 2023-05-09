@@ -46,14 +46,14 @@ def check_coverage(base: str, target: str) -> bool:
             return True
     return False
 
-def shred_subnet(base: str, exception: str) -> list[tuple[str, int]]:
+def shred_subnet(base: str, exception: str) -> list:
     '''
     Splits the `base` into a minimal number of subnets that don't contain the `exception`.
     `base` and `exception` are bitmaps.
     Empty `base` is equal to the default route.
     Returns a list of tuples of an address (str) and prefix len (int).
     '''
-    result: list[tuple[str, int]] = []
+    result: list = []
     rtm = Trie()
     node: TrieNode = None
     if not base:
@@ -80,7 +80,7 @@ def shred_subnet(base: str, exception: str) -> list[tuple[str, int]]:
             node = node.left
     return result
 
-def validate_prefixes(prefixes: list[str]) -> bool:
+def validate_prefixes(prefixes: list) -> bool:
     '''
     Returns False if at least one of the prefixes is not valid
     '''
@@ -93,7 +93,7 @@ def validate_prefixes(prefixes: list[str]) -> bool:
             return False
     return True
 
-def validate_addresses(addresses: list[str]) -> bool:
+def validate_addresses(addresses: list) -> bool:
     '''
     Returns False if at least one of the addresses is not valid
     '''
@@ -103,8 +103,8 @@ def validate_addresses(addresses: list[str]) -> bool:
     return True
 
 
-def main(args: list[str]) -> None:
-    routes: list[tuple[str, int]] = []
+def main(args: list) -> None:
+    routes: list = []
     if len(args) == 3:
         if not validate_prefixes(args[1:3]):
             raise Exception('Inserted prefixes aren`t valid.')
@@ -122,6 +122,9 @@ def main(args: list[str]) -> None:
         )
     else:
         raise Exception('Not enough arguments.')
+    if not routes:
+        print('No possible options.')
+        sys.exit(127)
     for address, length in routes:
         print(f'{address}/{length} or {address} {plen_to_ipv4_mask(length)}')
 
