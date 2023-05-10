@@ -15,12 +15,14 @@ from .subneting import (
 
 
 HELP_MESSAGE = '''
-Usage: python -m netshred SUBNET_ADDR1 SUBNET_MASK1 SUBNET_ADDR2 SUBNET_MASK2
+Usage: python -m netshred SUBNET_ADDR1 SUBNET_MASK1 SUBNET_ADDR2 SUBNET_MASK2 [cidr]
 E.g., python -m netshred 10.0.0.0 255.255.254.0 10.0.0.10 255.255.255.254
 
 OR
 
-python -m netshred PREFIX1 PREFIX2 (e.g., python -m netshred 10.0.0.0/23 10.0.0.10/31)
+python -m netshred PREFIX1 PREFIX2 [cidr] (e.g., python -m netshred 10.0.0.0/23 10.0.0.10/31)
+
+cidr -- an optional keyword that modifies the output from the prefixed view to a CIDR based
 '''
 
 
@@ -102,16 +104,18 @@ def validate_addresses(addresses: list) -> bool:
             return False
     return True
 
-
 def main(args: list) -> None:
     routes: list = []
-    if len(args) == 3:
+    is_prefix_view: bool = True
+    if len(args) in (3, 4):
         if not validate_prefixes(args[1:3]):
             raise Exception('Inserted prefixes aren`t valid.')
         if not check_coverage(ipv4_prefix_to_subnet_bitmap(args[1]), ipv4_prefix_to_subnet_bitmap(args[2])):
             raise Exception(f'The prefix {args[2]} is not part of {args[1]}.')
         routes = shred_subnet(ipv4_prefix_to_subnet_bitmap(args[1]), ipv4_prefix_to_subnet_bitmap(args[2]))
-    elif len(args) == 5:
+        if len(args) == 4 and args[3].lower() == 'cidr':
+            is_prefix_view = False
+    elif len(args) in (5, 6):
         if not validate_addresses(args[1:5]):
             raise Exception('Inserted addresses or mask aren`t valid.')
         if not check_coverage(ipv4_address_to_subnet_bitmap(args[1], args[2]), ipv4_address_to_bitmap(args[3])):
@@ -120,13 +124,18 @@ def main(args: list) -> None:
             ipv4_address_to_subnet_bitmap(args[1], args[2]),
             ipv4_address_to_subnet_bitmap(args[3], args[4])
         )
+        if len(args) == 6 and args[5].lower() == 'cidr':
+            is_prefix_view = False
     else:
         raise Exception('Not enough arguments.')
     if not routes:
         print('No possible options.')
         sys.exit(127)
     for address, length in routes:
-        print(f'{address}/{length} or {address} {plen_to_ipv4_mask(length)}')
+        if is_prefix_view:
+            print(f'{address}/{length}')
+        else:
+            print(f'{address} {plen_to_ipv4_mask(length)}')
 
 
 if __name__ == '__main__':
